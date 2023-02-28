@@ -5,7 +5,7 @@ import math
 
 
 model_checkpoint = 'KBLab/bert-base-swedish-cased-new'
-dataset_checkpoint = "Gabriel/mini_khubist2_v2"
+dataset_checkpoint = "Riksarkivet/mini_cleaned_diachronic_swe"
 
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)

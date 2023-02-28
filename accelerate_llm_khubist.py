@@ -4,12 +4,12 @@ import math
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from accelerate import Accelerator
-from huggingface_hub import get_full_repo_name, Repository
+# from huggingface_hub import get_full_repo_name, Repository
 from tqdm.auto import tqdm
 import torch
 
 model_checkpoint = 'KBLab/bert-base-swedish-cased-new'
-dataset_checkpoint = "Gabriel/mini_khubist2_v2"
+dataset_checkpoint = "Riksarkivet/mini_cleaned_diachronic_swe"
 
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)
@@ -52,7 +52,7 @@ eval_dataset = eval_dataset.rename_columns(
     }
 )
 
-batch_size = 64
+batch_size = 16
 train_dataloader = DataLoader(
     tokenized_datasets["train"],
     shuffle=True,
@@ -82,10 +82,10 @@ lr_scheduler = get_scheduler(
 )
 
 model_name = "bert-base-cased-swedish-1800-accelerate"
-repo_name = get_full_repo_name(model_name)
+# repo_name = get_full_repo_name(model_name)
 
 output_dir = model_name
-repo = Repository(output_dir, clone_from=repo_name)
+# repo = Repository(output_dir, clone_from=repo_name)
 
 
 progress_bar = tqdm(range(num_training_steps))
@@ -128,7 +128,7 @@ for epoch in range(num_train_epochs):
     unwrapped_model.save_pretrained(output_dir, save_function=accelerator.save)
     if accelerator.is_main_process:
         tokenizer.save_pretrained(output_dir)
-        repo.push_to_hub(
-            commit_message=f"Training in progress epoch {epoch}", blocking=False
-        )
+        # repo.push_to_hub(
+        #     commit_message=f"Training in progress epoch {epoch}", blocking=False
+        # )
 
