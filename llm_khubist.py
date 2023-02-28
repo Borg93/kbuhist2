@@ -18,7 +18,7 @@ dataset = load_dataset(dataset_checkpoint)
 #     print(row)
 
 def tokenize_function(examples):
-    result = tokenizer(examples["text"])
+    result = tokenizer(examples["text"], max_length=512, truncation=True, padding='max_length')
     if tokenizer.is_fast:
         result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
     return result
@@ -29,7 +29,7 @@ tokenized_datasets = dataset.map(
     tokenize_function, batched=True, remove_columns=["text","__index_level_0__"]
 )
 
-print(tokenizer.decode(tokenized_datasets["train"][1]["input_ids"]))
+# print(tokenizer.decode(tokenized_datasets["train"][1]["input_ids"]))
 
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=0.15)
 
@@ -59,12 +59,12 @@ trainer = Trainer(
     tokenizer=tokenizer,
 )
 
+
 if __name__ == "__main__":
 
-
-    eval_results = trainer.evaluate()
-    print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
-
-    # trainer.train()
     # eval_results = trainer.evaluate()
     # print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
+
+    trainer.train()
+    eval_results = trainer.evaluate()
+    print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")

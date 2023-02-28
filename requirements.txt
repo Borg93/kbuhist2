@@ -3,7 +3,9 @@ transformers==4.26.1
 numpy==1.24.2
 joblib==1.2.0
 #chardet==5.1.0
-cchardet
+cchardet == 2.1.7
 scikit-learn== 1.2.1
 pandas==1.5.3
 tqdm==4.64.1
+accelerate == 0.16.0
+ 
