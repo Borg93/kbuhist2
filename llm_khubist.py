@@ -33,21 +33,21 @@ tokenized_datasets = dataset.map(
 
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=0.15)
 
-batch_size = 64
-# Show the training loss with every epoch
-logging_steps = len(tokenized_datasets["train"]) // batch_size
+batch_size = 16
 
 training_args = TrainingArguments(
     output_dir="bert-base-swedish-cased-1800",
     overwrite_output_dir=True,
     evaluation_strategy="epoch",
+    save_strategy = "epoch",
     learning_rate=2e-5,
     weight_decay=0.01,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
-    push_to_hub=False,
+    num_train_epochs=3,
+    # gradient_accumulation_steps=2,
+    push_to_hub=True,
     fp16=False,
-    logging_steps=logging_steps,
 )
 
 trainer = Trainer(
@@ -68,3 +68,4 @@ if __name__ == "__main__":
     trainer.train()
     eval_results = trainer.evaluate()
     print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
+    trainer.push_to_hub()
