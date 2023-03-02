@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForMaskedLM, DataCollatorForLanguageModeling ,TrainingArguments, Trainer
 import torch
-from datasets import load_dataset, Dataset, DatasetDict
+from datasets import load_dataset
 import math
 
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # eval_results = trainer.evaluate()
     # print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
 
-    trainer.train()
-    eval_results = trainer.evaluate()
-    print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
-    trainer.push_to_hub()
+    # trainer.train()
+    # eval_results = trainer.evaluate()
+    # print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
+    # trainer.push_to_hub()

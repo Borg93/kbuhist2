@@ -129,6 +129,8 @@ def main():
             perplexity = float("inf")
 
         print(f">>> Epoch {epoch}: Perplexity: {perplexity}")
+        writer.add_scalar("Perplexity/Epoch", perplexity, epoch)
+
 
         # Save and upload
         accelerator.wait_for_everyone()
