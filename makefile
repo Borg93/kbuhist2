@@ -17,3 +17,10 @@ preprocess:
 	python prepreprocessing_khubist.py
 
 # Added pytest, linter
+
+vega_nodes:
+	srun -p gpu --gres=gpu:4 --nodes=1 --time=10:00:00 --mem=48GB --cpus-per-gpu=4 --pty bash
+
+vega_drop_nodes:
+	scancel -u euerikl
+
