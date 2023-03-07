@@ -1,6 +1,6 @@
-## WIP
+import pytest
+from kubhist.prepreprocessing_khubist import Clean_Khubis
 
-# TODO: Add given when then tests
 
 test_sent = ['\n', 
              'Psykologiska gåtor\n',
@@ -16,6 +16,16 @@ test_sent = ['\n',
              "XI - s"
              '— Godt!\n']
 
+
+def test_something():
+    # GIVEN a mobile is registered
+    ... some source code ...
+
+    # WHEN a test mode data connection is initiated
+    ... some source code ...
+
+    # THEN the call should connect
+    ... some source code ...
 
 ######################
 

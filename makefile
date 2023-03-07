@@ -24,3 +24,6 @@ vega_nodes:
 vega_drop_nodes:
 	scancel -u euerikl
 
+ready_test:
+	pip install -e .
+	pip install -r requirements_dev.txt
