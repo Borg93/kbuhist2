@@ -1,20 +1,28 @@
-from transformers import AutoTokenizer, AutoModelForMaskedLM, default_data_collator, DataCollatorForLanguageModeling, get_scheduler
+from transformers import (
+    AutoTokenizer,
+    AutoModelForMaskedLM,
+    default_data_collator,
+    DataCollatorForLanguageModeling,
+    get_scheduler,
+)
 from datasets import load_dataset
 import math
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from accelerate import Accelerator
+
 # from huggingface_hub import get_full_repo_name, Repository
 from tqdm.auto import tqdm
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+
 def main():
 
-    #Tensorboard
+    # Tensorboard
     writer = SummaryWriter()
 
-    model_checkpoint = 'KBLab/bert-base-swedish-cased-new'
+    model_checkpoint = "KBLab/bert-base-swedish-cased-new"
     dataset_checkpoint = "Riksarkivet/mini_cleaned_diachronic_swe"
 
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
@@ -25,17 +33,22 @@ def main():
     # dataset = dataset["train"].train_test_split(train_size=1000, test_size=100, seed=42)
 
     def tokenize_function(examples):
-        result = tokenizer(examples["text"], max_length=512, truncation=True, padding='max_length')
+        result = tokenizer(
+            examples["text"], max_length=512, truncation=True, padding="max_length"
+        )
         if tokenizer.is_fast:
-            result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
+            result["word_ids"] = [
+                result.word_ids(i) for i in range(len(result["input_ids"]))
+            ]
         return result
 
-
     tokenized_datasets = dataset.map(
-        tokenize_function, batched=True, remove_columns=["text","__index_level_0__"]
+        tokenize_function, batched=True, remove_columns=["text", "__index_level_0__"]
     )
 
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=0.15)
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer, mlm_probability=0.15
+    )
 
     def insert_random_mask(batch):
         features = [dict(zip(batch, t)) for t in zip(*batch.values())]
@@ -59,7 +72,6 @@ def main():
             "masked_labels": "labels",
         }
     )
-
 
     batch_size = 16
     train_dataloader = DataLoader(
@@ -131,7 +143,6 @@ def main():
         print(f">>> Epoch {epoch}: Perplexity: {perplexity}")
         writer.add_scalar("Perplexity/Epoch", perplexity, epoch)
 
-
         # Save and upload
         accelerator.wait_for_everyone()
         unwrapped_model = accelerator.unwrap_model(model)
@@ -147,8 +158,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-    # TODO 
+    # TODO
     # add perpelxity in tensorboard
     # accelerate mlm training: https://huggingface.co/course/chapter7/3?fw=pt, https://github.com/ayoolaolafenwa/TrainNLP/blob/main/train_masked_language_model.py
     # For inference: https://github.com/ayoolaolafenwa/TrainNLP/blob/main/test_masked_language_model.py
