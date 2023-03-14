@@ -1,20 +1,19 @@
-from joblib import Parallel, delayed
-from multiprocessing import cpu_count
 import re
+from multiprocessing import cpu_count
 
-from transformers import AutoTokenizer
-from datasets import load_dataset, Dataset, DatasetDict
-from sklearn.model_selection import train_test_split
-
-import pandas as pd
 import numpy as np
+import pandas as pd
+from datasets import Dataset, DatasetDict, load_dataset
+from joblib import Parallel, delayed
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+from transformers import AutoTokenizer
 
 
 class Clean_Kbuhist:
     def __init__(
         self,
-        sub_tuple=(("\s+", " "), ("\t", " ")),
+        sub_tuple=((r"\s+", " "), (r"\t", " ")),
         tokenizer_name="KBLab/bert-base-swedish-cased-new",
         token_seq_length=512,
         seq_length=None,
@@ -135,7 +134,8 @@ class Clean_Kbuhist:
             delayed(self.prev_chunk_based_on_token_seq_len)(sent_list)
             for sent_list in tqdm(
                 sent_list_chunks,
-                desc=f"Chunking (Using nr: {self.cpu_count} cores) into token_seq_length {self.token_seq_length} in progress",
+                desc=f"Chunking (Using nr: {self.cpu_count}  \
+                       cores) into token_seq_length {self.token_seq_length} in progress",
             )
         )
         return np.concatenate(list_of_temp_new_chunk_list).ravel().tolist()
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         (r"\t", " "),
     )
 
-    khubis = Clean_Khubis(
+    khubis = Clean_Kbuhist(
         tokenizer_name="KBLab/bert-base-swedish-cased-new",
         sub_tuple=regex_tuple,
         parallelize=True,

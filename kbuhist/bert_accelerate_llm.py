@@ -1,36 +1,46 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForMaskedLM,
-    default_data_collator,
-    DataCollatorForLanguageModeling,
-    get_scheduler,
-)
-from datasets import load_dataset
 import math
-from torch.utils.data import DataLoader
-from torch.optim import AdamW
+
+import torch
 from accelerate import Accelerator
+from config import parse_args
+from datasets import load_dataset
+from torch.optim import AdamW
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 # from huggingface_hub import get_full_repo_name, Repository
 from tqdm.auto import tqdm
-import torch
-from torch.utils.tensorboard import SummaryWriter
+from transformers import (
+    AutoModelForMaskedLM,
+    AutoTokenizer,
+    DataCollatorForLanguageModeling,
+    default_data_collator,
+    get_scheduler,
+)
 
 
-def main():
+def training_function(args, debug):
 
     # Tensorboard
     writer = SummaryWriter()
 
-    model_checkpoint = "KBLab/bert-base-swedish-cased-new"
-    dataset_checkpoint = "Riksarkivet/mini_cleaned_diachronic_swe"
+    model_checkpoint = args.model_check
+    dataset_checkpoint = args.dataset
 
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
     model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)
 
-    dataset = load_dataset(dataset_checkpoint, cache_dir="./cache")
+    lm_datasets = load_dataset(dataset_checkpoint, cache_dir=".cache")
 
-    # dataset = dataset["train"].train_test_split(train_size=1000, test_size=100, seed=42)
+    if debug:
+        train_size = 1000
+        test_size = int(0.1 * train_size)
+
+        dataset = lm_datasets["train"].train_test_split(
+            train_size=train_size, test_size=test_size, seed=42
+        )
+    else:
+        dataset = lm_datasets
 
     def tokenize_function(examples):
         result = tokenizer(
@@ -73,26 +83,28 @@ def main():
         }
     )
 
-    batch_size = 16
+    train_batch_size = args.per_device_train_batch_size
+    eval_batch_size = args.per_device_eval_batch_size
+
     train_dataloader = DataLoader(
         tokenized_datasets["train"],
         shuffle=True,
-        batch_size=batch_size,
+        batch_size=train_batch_size,
         collate_fn=data_collator,
     )
 
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=batch_size, collate_fn=default_data_collator
+        eval_dataset, batch_size=eval_batch_size, collate_fn=default_data_collator
     )
 
-    optimizer = AdamW(model.parameters(), lr=3e-5)
+    optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
 
     accelerator = Accelerator()
     model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
         model, optimizer, train_dataloader, eval_dataloader
     )
 
-    num_train_epochs = 6
+    num_train_epochs = args.epochs
     num_update_steps_per_epoch = len(train_dataloader)
     num_training_steps = num_train_epochs * num_update_steps_per_epoch
 
@@ -131,7 +143,7 @@ def main():
                 outputs = model(**batch)
 
             loss = outputs.loss
-            losses.append(accelerator.gather(loss.repeat(batch_size)))
+            losses.append(accelerator.gather(loss.repeat(eval_batch_size)))
 
         losses = torch.cat(losses)
         losses = losses[: len(eval_dataset)]
@@ -156,13 +168,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args, _ = parse_args()
+    training_function(args, debug=True)
 
     # TODO
-    # add perpelxity in tensorboard
-    # accelerate mlm training: https://huggingface.co/course/chapter7/3?fw=pt, https://github.com/ayoolaolafenwa/TrainNLP/blob/main/train_masked_language_model.py
-    # For inference: https://github.com/ayoolaolafenwa/TrainNLP/blob/main/test_masked_language_model.py
-    # for rest api: https://github.com/ayoolaolafenwa/TrainNLP/blob/main/test_mlp_api.py
-
-    # https://huggingface.co/docs/accelerate/v0.16.0/en/usage_guides/tracking
-    # inspo for documentation: https://www.learnpytorch.io/00_pytorch_fundamentals/
+    # add args and test for accelerate, look at llm_kbuhist..
+    # TODO
+    # add byt5 (t5) llm trnaing script
+    # TODO
+    # add post-correction byt5.. perhaps in a different folder?
+    # TODO
+    # add test and refactor prepreocessing (perhaps redo chunker?)
