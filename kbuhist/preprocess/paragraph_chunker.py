@@ -1,88 +1,81 @@
+import logging
+
+from datasets import load_dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
 
-class ParChunker:
-    def __init__(self, tokenizer, chunk_size):
-        self.tokenizer = tokenizer
+class ParagraphChunker:
+    def __init__(
+        self,
+        tokenizer_name="KBLab/bert-base-swedish-cased-new",
+        chunk_size=512,
+    ):
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.chunk_size = chunk_size
 
-    def group_texts(self, examples):
-        # Concatenate all texts
-        concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
-        # Compute length of concatenated texts
-        total_length = len(concatenated_examples[list(examples.keys())[0]])
-        # We drop the last chunk if it's smaller than chunk_size
-        total_length = (total_length // self.chunk_size) * self.chunk_size
-        # Split by chunks of max_len
-        result = {
-            k: [
-                t[i : i + self.chunk_size]
-                for i in range(0, total_length, self.chunk_size)
-            ]
-            for k, t in concatenated_examples.items()
+    def chunk_pipe(self, dataset_list, num_proc=8):
+
+        logging.info(f"Before chunking: {len(dataset_list)}")
+
+        chunked_datasets = dataset_list.map(
+            self.group_texts,
+            batched=True,
+            num_proc=num_proc,
+            remove_columns=[
+                "text",
+            ],
+        )
+
+        logging.info(f"Before after: {len(chunked_datasets)}")
+
+        return chunked_datasets
+
+    def group_texts(self, dataset_list):
+
+        tokenized_sent_list = self._tokenize_function(dataset_list)
+
+        concatenated_tokenized_sent_list = {
+            "input_ids": sum(tokenized_sent_list["input_ids"], [])
         }
-        # Create a new labels column
-        result["labels"] = result["input_ids"].copy()
-        return result
+        chunked_sent_list = {
+            "chunked_text": list(
+                self._chunker_split(concatenated_tokenized_sent_list["input_ids"])
+            )
+        }
 
-    # def chunker_function_(self, sent_list) -> list:
-    #     if len(sent_list) < 10:
-    #         print(" Warning: List is to small to chunk")
-    #         return " ".join(sent_list)
-    #     else:
-    #         if self.seq_length is None:
-    #             if self.parallelize:
-    #                 return self.parallel_chunker_prev_chunk_based_on_token_seq_len(
-    #                     sent_list
-    #                 )
-    #             else:
-    #                 return self.prev_chunk_based_on_token_seq_len(sent_list)
-    #         else:
-    #             return self.chunk_based_on_seq_len(sent_list)
+        return chunked_sent_list
 
-    # def chunk_based_on_seq_len(self, sent_list) -> list:
-    #     temp_new_chunk_list = []
-    #     temp_sent = ""
-    #     for sent in tqdm(
-    #         sent_list, desc=f"Chunking into seq_length: {self.seq_length} in progress"
-    #     ):
-    #         temp_sent += " " + sent
-    #         if len(temp_sent.split()) > self.seq_length:
-    #             temp_new_chunk_list.append(temp_sent.strip())
-    #             temp_sent = ""
-    #     return temp_new_chunk_list
+    def _tokenize_function(self, dataset_list):
+        tokenized_sent_list = self.tokenizer(dataset_list["text"])
+        if self.tokenizer.is_fast:
+            tokenized_sent_list["word_ids"] = [
+                tokenized_sent_list.word_ids(i)
+                for i in range(len(tokenized_sent_list["input_ids"]))
+            ]
+        return tokenized_sent_list
 
-    # def prev_chunk_based_on_token_seq_len(self, sent_list) -> list:
-    #     temp_new_chunk_list = []
-    #     temp_sent = ""
-    #     temp_sent_list = []
-    #     for sent in tqdm(
-    #         sent_list,
-    #         desc=f"Chunking into token_seq_length {self.token_seq_length} in progress",
-    #     ):
-    #         temp_sent += " " + sent
-    #         temp_sent_list.append(temp_sent.strip())
-    #         tokenized_input = self.tokenizer.tokenize(temp_sent_list[-1])
-    #         if len(tokenized_input) > self.token_seq_length:
-    #             temp_new_chunk_list.append(temp_sent_list[-2])
-    #             temp_sent = ""
-    #     return temp_new_chunk_list
-
-    # def parallel_chunker_prev_chunk_based_on_token_seq_len(self, sent_list) -> list:
-    #     sent_list_chunks = np.array_split(sent_list, self.cpu_count)
-    #     list_of_temp_new_chunk_list = Parallel(n_jobs=self.cpu_count, verbose=10)(
-    #         delayed(self.prev_chunk_based_on_token_seq_len)(sent_list)
-    #         for sent_list in tqdm(
-    #             sent_list_chunks,
-    #             desc=f"Chunking (Using nr: {self.cpu_count}  \
-    #                    cores) into token_seq_length {self.token_seq_length} in progress",
-    #         )
-    #     )
-    #     return np.concatenate(list_of_temp_new_chunk_list).ravel().tolist()
+    def _chunker_split(self, concatenated_tokenized_sent_list):
+        for i in range(0, len(concatenated_tokenized_sent_list), self.chunk_size):
+            yield self.tokenizer.decode(
+                concatenated_tokenized_sent_list[i : i + self.chunk_size],
+                skip_special_tokens=True,
+            )
 
 
 if __name__ == "__main__":
 
-    dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    dataset_list = dataset["train"].select(range(100000))["text"]
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    # dataset_list = dataset_list["train"].select(range(100000))
+
+    p_chunker = ParagraphChunker()
+
+    tokenized_dataset = p_chunker.chunk_pipe(dataset_list=dataset_list, num_proc=8)
+
+    print(tokenized_dataset[0])

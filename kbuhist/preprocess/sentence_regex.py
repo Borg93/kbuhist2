@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Union
 
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from tqdm import tqdm
 
 
@@ -34,21 +34,27 @@ class SentRegex:
         self.sub_tuple = sub_tuple
         self.remove_starting_roman_chapters = remove_starting_roman_chapters
 
-    def regex_pipe(self, sent_list: list) -> list:
+    def regex_pipe(
+        self,
+        dataset_list: Dataset,
+        num_proc: int = 8,
+    ) -> Dataset:
 
-        logging.info(f"Before filtering by regex: {len(sent_list)}")
+        logging.info(f"Before filtering by regex: {len(dataset_list)}")
 
-        cleaned_sent_list = self.clean_list_from_roman_and_specialchar_and_whitespace(
-            sent_list
+        cleaned_dataset_list = dataset_list.map(
+            self.clean_list_from_roman_and_specialchar_and_whitespace,
+            batched=True,
+            num_proc=num_proc,
         )
-        logging.info(f"After filtering by regex: {len(cleaned_sent_list)}")
-        return cleaned_sent_list
+        logging.info(f"After filtering by regex: {len(cleaned_dataset_list)}")
+        return cleaned_dataset_list
 
     def clean_list_from_roman_and_specialchar_and_whitespace(
-        self, sent_list: list
-    ) -> list:
+        self, dataset_list: dict
+    ) -> dict:
         temp_sent_list = []
-        for sent in tqdm(sent_list, desc="Roman & Whitespace removal in progress"):
+        for sent in dataset_list["text"]:
             new_sent_list_without_white = self.specialchar_and_whitespace_sub(sent)
             if new_sent_list_without_white is not None:
                 if self.remove_starting_roman_chapters:
@@ -60,7 +66,7 @@ class SentRegex:
                 else:
                     temp_sent_list.append(new_sent_list_without_white)
 
-        return temp_sent_list
+        return {"text": temp_sent_list}
 
     def _special_only(self, sent: str) -> bool:
         if re.match(r"^[_\W]+$", sent):
@@ -113,14 +119,14 @@ class SentRegex:
 if __name__ == "__main__":
 
     logging.basicConfig(
-        level=logging.WARNING,
+        level=logging.INFO,
         format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    dataset_list = dataset["train"].select(range(10000))["text"]
+    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    # dataset_list = dataset_list["train"].select(range(100000))
 
     pre_regex = SentRegex()
 
-    cl_sent_list = pre_regex.regex_pipe(sent_list=dataset_list)
+    cl_sent_list = pre_regex.regex_pipe(dataset_list=dataset_list)

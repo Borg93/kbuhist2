@@ -127,8 +127,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    dataset_list = dataset["train"].select(range(100000))["text"]
+    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    dataset_list = dataset_list["train"].select(range(100000))["text"]
 
     pre_cleaner = WordCleaner()
     cl_sent_list = pre_cleaner.clean_pipe(sent_list=dataset_list)

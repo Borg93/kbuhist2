@@ -14,8 +14,8 @@ if __name__ == "__main__":
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
-    dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    dataset_list = dataset["train"].select(range(10000))["text"]
+    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    dataset_list = dataset_list["train"].select(range(10000))["text"]
 
     pre_clean = WordCleaner()
 
