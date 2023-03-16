@@ -4,14 +4,8 @@ import re
 from datasets import load_dataset
 from tqdm import tqdm
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 
-
-class Word_Cleaner:
+class WordCleaner:
     def __init__(
         self,
         counting_avg: float = 0.65,
@@ -47,7 +41,7 @@ class Word_Cleaner:
         )
 
         logging.info(
-            f"After filtering by length counter: {len(number_and_length_filter_sent_list)}"
+            f"After filtering by number counter: {len(number_and_length_filter_sent_list)}"
         )
 
         return number_and_length_filter_sent_list
@@ -127,20 +121,15 @@ class Word_Cleaner:
 
 if __name__ == "__main__":
 
-    # dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    # dataset_list = dataset["train"].select(range(100000))["text"]
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
-    test_sent_length = [
-        "Psykologiska g å t o r hej hej ",
-        "En q w e r t q e t u q t h d s  rättegång för sextio år sedan.\n",
-        "I en vacker salon på ett litet l a n d t s t ä l l e nära floden, ett par mil ifrån London",
-        "— Nej, troligen icke, — svarade Astley förvånad och kännande sina misstankar.",
-        "— Gott Godt!",
-        "heJ »» HEJ» The     quick brown    fox, Augusta på 	Isa, o c h Isa p å A u g u s t",
-        "I en vac k e r s a l o n på e t t l i t e t l a n d t s t älle nära floden, ett par mil ifrån London.",
-        "— God t !",
-    ]
+    dataset = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    dataset_list = dataset["train"].select(range(100000))["text"]
 
-    cleaner = Word_Cleaner()
-    cl_sent_list = cleaner.clean_pipe(sent_list=test_sent_length)
-    print(cl_sent_list)
+    pre_cleaner = WordCleaner()
+    cl_sent_list = pre_cleaner.clean_pipe(sent_list=dataset_list)
+    print(cl_sent_list[0:10])

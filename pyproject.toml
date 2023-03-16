@@ -5,6 +5,10 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["tests"]
+
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 select = ["E", "F"]
