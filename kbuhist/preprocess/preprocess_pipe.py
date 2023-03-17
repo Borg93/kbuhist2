@@ -1,11 +1,20 @@
-import logging
+import os
 
-from datasets import load_dataset
+from datasets import Dataset, DatasetDict, load_dataset
+from dotenv import load_dotenv
+from huggingface_hub import login
 from paragraph_chunker import ParagraphChunker
 from sentence_regex import SentRegex
 from word_cleaner import WordCleaner
 
 if __name__ == "__main__":
+
+    # project_dir = os.path.join(os.path.dirname(__file__), os.pardir)
+    # dotenv_path = os.path.join(project_dir, "../.env")
+
+    # load_dotenv(dotenv_path)
+
+    # login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
 
     dataset_list = load_dataset(
         "Riksarkivet/mini_raw_diachronic_swe",
@@ -13,9 +22,9 @@ if __name__ == "__main__":
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
 
-    # dataset_list = dataset_list["train"].select(range(10000))["text"]
+    # dataset_list = dataset_list.select(range(10000))
 
-    num_proc = 8
+    num_proc = 24  # os.cpu_count()
 
     pre_clean = WordCleaner()
     clean_sent_list = pre_clean.clean_pipe(dataset_list=dataset_list, num_proc=num_proc)
@@ -32,20 +41,29 @@ if __name__ == "__main__":
 
     print(chunked_dataset)
 
-# TODO
-# here parallelize code..
+    final_dataset = chunked_dataset.train_test_split(test_size=0.02, seed=42)
 
-# !pip install psutil
-# import psutil
+    print(final_dataset)
 
-# Process.memory_info is expressed in bytes, so convert to megabytes
-# print(f"RAM used: {psutil.Process().memory_info().rss / (1024 * 1024):.2f} MB")
-# https://huggingface.co/course/chapter5/4?fw=pt#what-is-the-pile
+    final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v3")
 
-# batch mapping
-# https://huggingface.co/docs/datasets/about_map_batch
+    # df = pd.DataFrame(chunked_dataset, columns=["text"])
+    # df_train, df_test = train_test_split(
+    #     df, test_size=0.02, random_state=None, shuffle=420
+    # )
 
+    # df_train_dataset = Dataset.from_pandas(df_train)
+    # print("train shape", df_train_dataset.shape)
+    # df_test_dataset = Dataset.from_pandas(df_test)
+    # print("test shape", df_test_dataset.shape)
 
-# mlm_data_collator? --> determinsitc masking for evaluation...
+    quit()
 
-# https://huggingface.co/course/chapter7/3?fw=pt
+    master_dataset_dict = DatasetDict(
+        {"train": df_train_dataset, "test": df_test_dataset}
+    )
+    master_dataset_dict = DatasetDict(
+        {"train": df_train_dataset, "test": df_test_dataset}
+    )
+
+    master_dataset_dict.push_to_hub("Gabriel/mini_kbuhist2_v3")

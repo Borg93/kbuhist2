@@ -6,6 +6,9 @@ __pycache__/
 #ruff
 .ruff_cache/
 
+#env
+.env
+
 # C extensions
 *.so
 

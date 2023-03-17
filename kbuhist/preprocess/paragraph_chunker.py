@@ -83,3 +83,15 @@ if __name__ == "__main__":
     logging.info(f"Before after: {len(chunked_dataset)}")
 
     print(chunked_dataset[0])
+
+# TODO
+
+# MYPY
+# DOCstring
+# regex..
+# 1 (r"^\s+", ""),
+# 2 (r"^[,.;:?!]", ""),
+# 2 (r"^[,.;:?!]", ""),
+# 3 (r"^\s+", ""),
+
+# BUG --> grouptext --> tokenizer into decode loses information of text...

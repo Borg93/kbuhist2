@@ -26,6 +26,8 @@ class SentRegex:
                 (r"\t", " "),
                 (r"[ \t]+$", ""),
                 (r"^\s+", ""),
+                (r"^[,.]", ""),
+                (r"^\s+", ""),
             )
         ),
         remove_starting_roman_chapters: bool = True,
