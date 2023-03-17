@@ -1,6 +1,6 @@
 import os
 
-from datasets import Dataset, DatasetDict, load_dataset
+from datasets import , load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import login
 from paragraph_chunker import ParagraphChunker
@@ -46,24 +46,3 @@ if __name__ == "__main__":
     print(final_dataset)
 
     final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v3")
-
-    # df = pd.DataFrame(chunked_dataset, columns=["text"])
-    # df_train, df_test = train_test_split(
-    #     df, test_size=0.02, random_state=None, shuffle=420
-    # )
-
-    # df_train_dataset = Dataset.from_pandas(df_train)
-    # print("train shape", df_train_dataset.shape)
-    # df_test_dataset = Dataset.from_pandas(df_test)
-    # print("test shape", df_test_dataset.shape)
-
-    quit()
-
-    master_dataset_dict = DatasetDict(
-        {"train": df_train_dataset, "test": df_test_dataset}
-    )
-    master_dataset_dict = DatasetDict(
-        {"train": df_train_dataset, "test": df_test_dataset}
-    )
-
-    master_dataset_dict.push_to_hub("Gabriel/mini_kbuhist2_v3")
