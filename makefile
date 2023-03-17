@@ -27,3 +27,6 @@ vega_drop_nodes:
 ready_test:
 	pip install -e .
 	pip install -r requirements_dev.txt
+
+storage:
+	du -sh
