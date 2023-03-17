@@ -1,7 +1,6 @@
 import logging
 
 from datasets import load_dataset
-from tqdm import tqdm
 from transformers import AutoTokenizer
 
 
@@ -16,8 +15,6 @@ class ParagraphChunker:
 
     def chunk_pipe(self, dataset_list, num_proc=8):
 
-        logging.info(f"Before chunking: {len(dataset_list)}")
-
         chunked_datasets = dataset_list.map(
             self.group_texts,
             batched=True,
@@ -26,8 +23,6 @@ class ParagraphChunker:
                 "text",
             ],
         )
-
-        logging.info(f"Before after: {len(chunked_datasets)}")
 
         return chunked_datasets
 
@@ -71,11 +66,20 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    dataset_list = load_dataset(
+        "Riksarkivet/mini_raw_diachronic_swe",
+        split="train",
+        cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
+    )
+
+    logging.info(f"Before chunking: {len(dataset_list)}")
+
     # dataset_list = dataset_list["train"].select(range(100000))
 
     p_chunker = ParagraphChunker()
 
-    tokenized_dataset = p_chunker.chunk_pipe(dataset_list=dataset_list, num_proc=8)
+    chunked_dataset = p_chunker.chunk_pipe(dataset_list=dataset_list, num_proc=8)
 
-    print(tokenized_dataset[0])
+    logging.info(f"Before after: {len(chunked_dataset)}")
+
+    print(chunked_dataset[0])

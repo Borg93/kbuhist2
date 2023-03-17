@@ -1,8 +1,7 @@
 import logging
 import re
 
-from datasets import load_dataset
-from tqdm import tqdm
+from datasets import Dataset, load_dataset
 
 
 class WordCleaner:
@@ -16,35 +15,40 @@ class WordCleaner:
         self.counting_avg = counting_avg
         self.short_word_threshold = short_word_threshold
 
-    def clean_pipe(self, sent_list: list) -> list:
+    def clean_pipe(self, dataset_list: Dataset, num_proc: int = 8) -> Dataset:
         """Runs first counting_length_of_letters_and_if_to_many_remove
             and than counting_sequence_length_of_numbers
 
         Args:
-            sent_list (list): List of sentences with text
+            dataset_list (Dataset): Huggingface Dataset as dict with sentences of text
 
         Returns:
-            list: Reduced list of sentences
+            Dataset: Reduced Dataset of sentences
         """
 
-        logging.info(f"Before filtering by length counter: {len(sent_list)}")
+        number_and_length_filter_sent_list = dataset_list.map(
+            self._combined_filtering,
+            batched=True,
+            num_proc=num_proc,
+        )
+
+        return number_and_length_filter_sent_list
+
+    def _combined_filtering(self, dataset_list):
 
         length_filter_sent_list = self.counting_length_of_letters_and_if_to_many_remove(
-            sent_list
+            dataset_list["text"]
         )
-        logging.info(
-            f"After filtering by length counter: {len(length_filter_sent_list)}"
-        )
+
+        # logging.info(
+        #     f"After filtering by length counter: {len(length_filter_sent_list)}"
+        # )
 
         number_and_length_filter_sent_list = self.counting_sequence_length_of_numbers(
             length_filter_sent_list
         )
 
-        logging.info(
-            f"After filtering by number counter: {len(number_and_length_filter_sent_list)}"
-        )
-
-        return number_and_length_filter_sent_list
+        return {"text": number_and_length_filter_sent_list}
 
     def counting_length_of_letters_and_if_to_many_remove(self, sent_list: list) -> list:
         """This function takes a list of sentences and counts the number of long and short words in each sentence.
@@ -60,7 +64,7 @@ class WordCleaner:
         """
 
         new_sent_list = []
-        for sent in tqdm(sent_list, desc="Length counter filtering in progress"):
+        for sent in sent_list:
             splitted_sent = sent.split()
             counter_word_length = {"long": 0, "short": 0}
             for word in splitted_sent:
@@ -97,7 +101,7 @@ class WordCleaner:
         """
 
         new_sent_list = []
-        for sent in tqdm(sent_list, desc="Number counter filtering in progress"):
+        for sent in sent_list:
             if not self._has_numbers(sent):
                 new_sent_list.append(sent)
             else:
@@ -122,14 +126,25 @@ class WordCleaner:
 if __name__ == "__main__":
 
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
-    dataset_list = dataset_list["train"].select(range(100000))["text"]
+    dataset_list = load_dataset(
+        "Riksarkivet/mini_raw_diachronic_swe",
+        split="train",
+        cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
+    )
+    # dataset_list = dataset_list["train"].select(range(100000))
+
+    logging.info(f"Before filtering by length counter: {len(dataset_list)}")
 
     pre_cleaner = WordCleaner()
-    cl_sent_list = pre_cleaner.clean_pipe(sent_list=dataset_list)
+    cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list)
+
+    logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
+
+    print(cl_sent_list)
+
     print(cl_sent_list[0:10])

@@ -3,7 +3,6 @@ import re
 from typing import Union
 
 from datasets import Dataset, load_dataset
-from tqdm import tqdm
 
 
 class SentRegex:
@@ -40,14 +39,11 @@ class SentRegex:
         num_proc: int = 8,
     ) -> Dataset:
 
-        logging.info(f"Before filtering by regex: {len(dataset_list)}")
-
         cleaned_dataset_list = dataset_list.map(
             self.clean_list_from_roman_and_specialchar_and_whitespace,
             batched=True,
             num_proc=num_proc,
         )
-        logging.info(f"After filtering by regex: {len(cleaned_dataset_list)}")
         return cleaned_dataset_list
 
     def clean_list_from_roman_and_specialchar_and_whitespace(
@@ -74,11 +70,12 @@ class SentRegex:
         else:
             return True
 
-    def specialchar_and_whitespace_sub(self, sent: str) -> str:
+    def specialchar_and_whitespace_sub(self, sent: str) -> Union[str, None]:
         if self._special_only(sent):
             for s_element in self.sub_tuple:
                 sent = re.sub(s_element[0], s_element[1], sent)
             return sent
+        return None
 
     def _split_punct(self, sent: str) -> Union[list, str]:
         splitted_sent_list = re.findall(r"[\w']+|[.,!?;:-_—]", sent)
@@ -93,15 +90,18 @@ class SentRegex:
         else:
             return False
 
-    def _special_roman_checker_with_length(self, splitted_sent: str, sent: str) -> str:
+    def _special_roman_checker_with_length(
+        self, splitted_sent: str, sent: str
+    ) -> Union[str, None]:
         first_roman = self._roman_only(splitted_sent)
         if first_roman:
             if len(sent.split()) > 2:
                 return sent
         else:
             return sent
+        return None
 
-    def _startwith_roman_sent_begin_drop(self, sent: str) -> str:
+    def _startwith_roman_sent_begin_drop(self, sent: str) -> Union[str, None]:
         splitted_sent_list = self._split_punct(sent)
         if len(splitted_sent_list) > 1:
             if not self._special_only(splitted_sent_list[0]):
@@ -124,9 +124,21 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    dataset_list = load_dataset("Riksarkivet/mini_raw_diachronic_swe")
+    dataset_list = load_dataset(
+        "Riksarkivet/mini_raw_diachronic_swe",
+        split="train",
+        cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
+    )
+
+    logging.info(f"Before filtering by regex: {len(dataset_list)}")
+
     # dataset_list = dataset_list["train"].select(range(100000))
 
     pre_regex = SentRegex()
 
     cl_sent_list = pre_regex.regex_pipe(dataset_list=dataset_list)
+
+    logging.info(f"After filtering by regex: {len(cl_sent_list)}")
+
+    print(cl_sent_list)
+    print(cl_sent_list["text"][0])
