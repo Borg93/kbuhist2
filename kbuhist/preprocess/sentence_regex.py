@@ -144,3 +144,6 @@ if __name__ == "__main__":
 
     print(cl_sent_list)
     print(cl_sent_list["text"][0])
+
+# TODO
+# Rewrite test

@@ -95,3 +95,7 @@ if __name__ == "__main__":
 # 3 (r"^\s+", ""),
 
 # BUG --> grouptext --> tokenizer into decode loses information of text...
+
+
+# TODO
+# Rewrite test
