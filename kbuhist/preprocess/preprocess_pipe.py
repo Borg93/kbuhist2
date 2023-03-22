@@ -1,8 +1,8 @@
-import os
+# import os
+from datasets import load_dataset
 
-from datasets import , load_dataset
-from dotenv import load_dotenv
-from huggingface_hub import login
+# from dotenv import load_dotenv
+# from huggingface_hub import login
 from paragraph_chunker import ParagraphChunker
 from sentence_regex import SentRegex
 from word_cleaner import WordCleaner
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # dataset_list = dataset_list.select(range(10000))
 
-    num_proc = 24  # os.cpu_count()
+    num_proc = 48  # os.cpu_count()
 
     pre_clean = WordCleaner()
     clean_sent_list = pre_clean.clean_pipe(dataset_list=dataset_list, num_proc=num_proc)
@@ -45,4 +45,4 @@ if __name__ == "__main__":
 
     print(final_dataset)
 
-    final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v3")
+    final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v4")

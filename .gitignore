@@ -12,6 +12,10 @@ __pycache__/
 # C extensions
 *.so
 
+svediakorp
+
+*.gzip
+
 tests/__pycache__/
 tests/.pytest_cache
 

@@ -1,10 +1,10 @@
 import pytest
 
-from kbuhist.preprocess.word_cleaner import Word_Cleaner
+from kbuhist.preprocess.word_cleaner import WordCleaner
 
 
 def test_counting_sequence_length_of_numbers():
-    cleaner = Word_Cleaner()
+    cleaner = WordCleaner()
 
     test_numb_length = [
         "267864,117 580 254 760 14 4 — 92 — 8 32 122 32 ' 74 24 500 126 •_ 400 — 252 800 lä ä — 95 — 10 — 126 32 85",

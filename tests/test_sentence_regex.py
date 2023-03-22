@@ -1,6 +1,6 @@
 import pytest
 
-from kbuhist.preprocess.sentence_regex import Sent_Regex
+from kbuhist.preprocess.sentence_regex import SentRegex
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_clean_list_from_roman_and_specialchar_and_whitespace(
         (r"[ \t]+$", ""),
         (r"^\s+", ""),
     )
-    sent_regex = Sent_Regex(
+    sent_regex = SentRegex(
         sub_tuple=given_sub_tuple, remove_starting_roman_chapters=True
     )
 

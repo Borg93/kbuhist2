@@ -28,34 +28,54 @@ class ParagraphChunker:
 
     def group_texts(self, dataset_list):
 
-        tokenized_sent_list = self._tokenize_function(dataset_list)
+        # tokenized_sent_list = self._tokenize_function(dataset_list)
 
-        concatenated_tokenized_sent_list = {
-            "input_ids": sum(tokenized_sent_list["input_ids"], [])
-        }
         chunked_sent_list = {
             "chunked_text": list(
-                self._chunker_split(concatenated_tokenized_sent_list["input_ids"])
-            )
+                self._chunker_split(dataset_list["text"])
+            )  # dataset_list
         }
 
         return chunked_sent_list
 
-    def _tokenize_function(self, dataset_list):
-        tokenized_sent_list = self.tokenizer(dataset_list["text"])
-        if self.tokenizer.is_fast:
-            tokenized_sent_list["word_ids"] = [
-                tokenized_sent_list.word_ids(i)
-                for i in range(len(tokenized_sent_list["input_ids"]))
-            ]
-        return tokenized_sent_list
+    def _chunker_split(self, dataset_list_text) -> list:
+        temp_new_chunk_list = []
+        temp_sent = ""
+        temp_sent_list = []
+        for sent in dataset_list_text:
+            temp_sent += " " + sent
+            temp_sent_list.append(temp_sent.strip())
+            if len(self.tokenizer.tokenize(temp_sent_list[-1])) > self.chunk_size:
+                if len(temp_sent_list) > 1:
+                    temp_new_chunk_list.append(temp_sent_list[-2])
+                    temp_sent = "" + sent
+                    temp_sent_list = [temp_sent]
+                else:
+                    temp_new_chunk_list.append(temp_sent_list[-1])
+                    temp_sent = ""
+                    temp_sent_list = [temp_sent]
+        return temp_new_chunk_list
 
-    def _chunker_split(self, concatenated_tokenized_sent_list):
-        for i in range(0, len(concatenated_tokenized_sent_list), self.chunk_size):
-            yield self.tokenizer.decode(
-                concatenated_tokenized_sent_list[i : i + self.chunk_size],
-                skip_special_tokens=True,
-            )
+    # def _tokenize_function(self, dataset_list):
+    #     tokenized_sent_list = self.tokenizer(dataset_list["text"])
+    #     if self.tokenizer.is_fast:
+    #         tokenized_sent_list["word_ids"] = [
+    #             tokenized_sent_list.word_ids(i)
+    #             for i in range(len(tokenized_sent_list["input_ids"]))
+    #         ]
+    #     return tokenized_sent_list
+
+    # def _chunker_split_old(self, tokenized_sent_list):
+
+    #     concatenated_tokenized_sent_list = {
+    #         "input_ids": sum(tokenized_sent_list["input_ids"], [])
+    #     }
+
+    #     for i in range(0, len(concatenated_tokenized_sent_list), self.chunk_size):
+    #         yield self.tokenizer.decode(
+    #             concatenated_tokenized_sent_list[i : i + self.chunk_size],
+    #             skip_special_tokens=False,
+    #         )
 
 
 if __name__ == "__main__":
@@ -72,9 +92,9 @@ if __name__ == "__main__":
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
 
-    logging.info(f"Before chunking: {len(dataset_list)}")
+    # dataset_list = dataset_list.select(range(1000))
 
-    # dataset_list = dataset_list["train"].select(range(100000))
+    logging.info(f"Before chunking: {len(dataset_list)}")
 
     p_chunker = ParagraphChunker()
 
@@ -82,7 +102,10 @@ if __name__ == "__main__":
 
     logging.info(f"Before after: {len(chunked_dataset)}")
 
-    print(chunked_dataset[0])
+    print(dataset_list["text"][-1])
+    print("\n")
+    print(chunked_dataset["chunked_text"][-1])
+
 
 # TODO
 
@@ -95,7 +118,8 @@ if __name__ == "__main__":
 # 3 (r"^\s+", ""),
 
 # BUG --> grouptext --> tokenizer into decode loses information of text...
-
+# perhaps could test to train tokenizer for better chunking?
+# https://huggingface.co/course/chapter6/2?fw=pt
 
 # TODO
 # Rewrite test

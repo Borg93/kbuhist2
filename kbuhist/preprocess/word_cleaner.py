@@ -8,8 +8,8 @@ class WordCleaner:
     def __init__(
         self,
         counting_avg: float = 0.65,
-        number_ratio: float = 0.7,
-        short_word_threshold: int = 7,
+        number_ratio: float = 0.5,
+        short_word_threshold: int = 10,
     ):
         self.number_ratio = number_ratio
         self.counting_avg = counting_avg
@@ -115,8 +115,16 @@ class WordCleaner:
                 number_ratio = counter_word_length["digit"] / (
                     counter_word_length["not_digit"] + 0.01
                 )
-                if number_ratio < self.number_ratio:
+                if (len(splitted_sent) < self.short_word_threshold) and (
+                    number_ratio < (self.number_ratio + 0.2)
+                ):
                     new_sent_list.append(sent)
+                else:
+                    if number_ratio < (self.number_ratio):
+                        new_sent_list.append(sent)
+                    else:
+                        pass
+
         return new_sent_list
 
     def _has_numbers(self, inputString):
