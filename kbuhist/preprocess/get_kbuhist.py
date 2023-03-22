@@ -9,7 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-class KbuhistData:
+class GetKbuhist:
     def __init__(self, create_folder="svediakorp"):
         self.create_folder = create_folder
 
@@ -149,8 +149,8 @@ if __name__ == "__main__":
         "periodicals",
         "academic-scientific",
     ]
-    target_dataset = "informal"
-    urlkbuhist = KbuhistData()
+    target_dataset = "governmental"
+    urlkbuhist = GetKbuhist()
     category_and_name_list = urlkbuhist.get_files_from_url(dataset=target_dataset)
     urlkbuhist.zip_extract_files(category_and_name_list)
     urlkbuhist.delete_unwanted_files(category_and_name_list)
