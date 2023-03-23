@@ -2,11 +2,13 @@ import logging
 import os
 import re
 import time
+from pathlib import Path
 from zipfile import ZipFile
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from datasets import Dataset
 
 
 class GetKbuhist:
@@ -96,6 +98,7 @@ class GetKbuhist:
 
         temp_df_list = []
         for key in dict_txt.keys():
+            print(key)
             temp_df = self._return_readlines(dict_txt[key])
             temp_df_list.append(temp_df)
             logging.info(f"Created df for: {key}")
@@ -108,6 +111,7 @@ class GetKbuhist:
 
         temp_df_list = []
         for files_in_dict in dict_to_read:
+            print(files_in_dict)
             with open(files_in_dict, "r+") as f:
                 list_file = f.readlines()
 
@@ -125,6 +129,34 @@ class GetKbuhist:
         return pd.concat(temp_df_list)
 
 
+def assemble_parquet():
+    data_dir = Path("./temp_parquet")
+    print(data_dir)
+    full_df = pd.concat(
+        pd.read_parquet(parquet_file)
+        for parquet_file in data_dir.glob("*.parquet.gzip")
+    )
+
+    full_df = full_df[
+        [
+            "ID",
+            "author",
+            "title",
+            "subtitle",
+            "originDate",
+            "retrieveDate",
+            "genre",
+            "subgenre",
+            "digitisationMethod",
+            "annotationMethod",
+            "sentenceOrder",
+            "text",
+        ]
+    ].reset_index()
+    dataset = Dataset.from_pandas(full_df)
+    dataset.push_to_hub("Gabriel/raw_parts_of_kbuhist2")
+
+
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -134,24 +166,26 @@ if __name__ == "__main__":
     )
 
     datasets = [
-        "letters",
-        "court",
-        "school",
-        "informal",
-        "law",
-        "governmental",
-        "pamphlets",
-        "religion",
-        "secular",
-        "user-generated",
-        "lyrics",
-        "newspapers",
-        "periodicals",
-        "academic-scientific",
+        "letters",  # Q
+        "court",  # Q
+        "school",  # skipped
+        "informal",  # Q
+        "law",  # Q
+        "governmental",  # disk quota.. (dålig ocr) skipped
+        "pamphlets",  # Q
+        "religion",  # Q
+        "secular",  # Q (automaitc but good quality)
+        "user-generated",  # To new
+        "lyrics",  # Q
+        "newspapers",  # disk quota.. (dålig ocr) skipped
+        "periodicals",  # Q
+        "academic-scientific",  # Q
     ]
-    target_dataset = "governmental"
-    urlkbuhist = GetKbuhist()
-    category_and_name_list = urlkbuhist.get_files_from_url(dataset=target_dataset)
-    urlkbuhist.zip_extract_files(category_and_name_list)
-    urlkbuhist.delete_unwanted_files(category_and_name_list)
-    urlkbuhist.read_txt_files(dataset=target_dataset)
+
+    # target_dataset = "academic-scientific"
+    # urlkbuhist = GetKbuhist()
+    # category_and_name_list = urlkbuhist.get_files_from_url(dataset=target_dataset)
+    # urlkbuhist.zip_extract_files(category_and_name_list)
+    # urlkbuhist.delete_unwanted_files(category_and_name_list)
+    # urlkbuhist.read_txt_files(dataset=target_dataset)
+    assemble_parquet()

@@ -117,9 +117,8 @@ if __name__ == "__main__":
 # 2 (r"^[,.;:?!]", ""),
 # 3 (r"^\s+", ""),
 
-# BUG --> grouptext --> tokenizer into decode loses information of text...
-# perhaps could test to train tokenizer for better chunking?
-# https://huggingface.co/course/chapter6/2?fw=pt
 
 # TODO
 # Rewrite test
+
+# TODO Rewrite so it can handle metadata for chunks!
