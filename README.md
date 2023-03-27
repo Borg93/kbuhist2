@@ -1,8 +1,8 @@
-# khubist2
+# kbuhist2
 
 ## Experiments:
 
-### bert-base-cased-swedish-1800
+### bert-base-cased-swedish-historical
 
 - lr: 5e-5
 - epochs: 3
