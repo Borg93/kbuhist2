@@ -41,10 +41,10 @@ def get_all_info_of_table(corpus="letters"):
         if len(columns) > 0:
             dataset = columns[0].get_text()
             date = columns[1].get_text()
-            file_name = columns[3].find('a').get('href')
+            file_name = columns[3].find("a").get("href")
 
             corpus_dataset_date_list.append((heading, corpus, dataset, date, file_name))
-    
+
     return sorted(corpus_dataset_date_list, key=lambda x: x[-1])
 
 
@@ -55,9 +55,6 @@ if __name__ == "__main__":
         format="%(asctime)s %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-
-    # assemble_parquet()
-    # TODO Try to find and add metadata to groups
 
     corpus_dataset_date_list = get_all_info_of_table("court")
 

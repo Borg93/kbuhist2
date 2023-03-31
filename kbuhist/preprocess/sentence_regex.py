@@ -180,3 +180,4 @@ if __name__ == "__main__":
 # TODO
 # Rewrite test
 # Remove this parts with regex :'40004023\tOch han gick omkring i hela Galileen och undervisade i deras synagogor och predikade evangelium om riket och botade alla slags sjukdomar och allt slags skröplighet bland folket.\n'
+# Khubist kbuhist should be renamded to diachronic...
