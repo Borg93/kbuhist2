@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import List, Union
 
 from datasets import Dataset, load_dataset
 
@@ -15,7 +16,14 @@ class WordCleaner:
         self.counting_avg = counting_avg
         self.short_word_threshold = short_word_threshold
 
-    def clean_pipe(self, dataset_list: Dataset, num_proc: int = 8) -> Dataset:
+    def clean_pipe(
+        self,
+        dataset_list: Dataset,
+        batched: bool = False,
+        num_proc: Union[int, None] = 8,
+        remove_columns: Union[str, List[str], None] = "seq_text",
+        input_column: str = "seq_text",
+    ) -> Dataset:
         """Runs first counting_length_of_letters_and_if_to_many_remove
             and than counting_sequence_length_of_numbers
 
@@ -26,29 +34,39 @@ class WordCleaner:
             Dataset: Reduced Dataset of sentences
         """
 
+        if batched is True:
+            num_proc = num_proc
+        else:
+            num_proc = None
         number_and_length_filter_sent_list = dataset_list.map(
-            self._combined_filtering,
-            batched=True,
+            function=self._combined_filtering,
+            batched=batched,
             num_proc=num_proc,
+            remove_columns=remove_columns,
+            fn_kwargs={"input_column": input_column},
         )
+
+        print(number_and_length_filter_sent_list)
 
         return number_and_length_filter_sent_list
 
-    def _combined_filtering(self, dataset_list):
+    def _combined_filtering(self, dataset_list: Dataset, **kwargs) -> Dataset:
+        input_cols = kwargs["input_column"]
 
-        length_filter_sent_list = self.counting_length_of_letters_and_if_to_many_remove(
-            dataset_list["text"]
-        )
+        temp_data_list = []
+        for data in dataset_list[input_cols]:
+            length_filter_sent_list = (
+                self.counting_length_of_letters_and_if_to_many_remove(data)
+            )
+            number_and_length_filter_sent_list = (
+                self.counting_sequence_length_of_numbers(length_filter_sent_list)
+            )
 
-        # logging.info(
-        #     f"After filtering by length counter: {len(length_filter_sent_list)}"
-        # )
+            # data["clean_text"] = number_and_length_filter_sent_list
+            temp_data_list.append(number_and_length_filter_sent_list)
 
-        number_and_length_filter_sent_list = self.counting_sequence_length_of_numbers(
-            length_filter_sent_list
-        )
-
-        return {"text": number_and_length_filter_sent_list}
+        dataset_list["clean_text"] = temp_data_list
+        return dataset_list
 
     def counting_length_of_letters_and_if_to_many_remove(self, sent_list: list) -> list:
         """This function takes a list of sentences and counts the number of long and short words in each sentence.
@@ -140,23 +158,24 @@ if __name__ == "__main__":
     )
 
     dataset_list = load_dataset(
-        "Riksarkivet/mini_raw_diachronic_swe",
+        "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
         split="train",
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
-    # dataset_list = dataset_list["train"].select(range(100000))
+    # dataset_list = dataset_list.select(range(1000))
 
     logging.info(f"Before filtering by length counter: {len(dataset_list)}")
 
     pre_cleaner = WordCleaner()
-    cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list)
+    cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list, batched=True)
 
     logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
 
-    print(cl_sent_list)
+    test = cl_sent_list.to_pandas()
 
-    print(cl_sent_list[0:10])
+    print(test)
 
 
 # TODO
+# Now the function can handle the dataset but not lists
 # Rewrite test

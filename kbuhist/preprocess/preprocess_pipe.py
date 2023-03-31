@@ -1,60 +1,65 @@
-# import os
-from datasets import load_dataset
+from multiprocessing import Pool
 
-# from dotenv import load_dotenv
-# from huggingface_hub import login
+from datasets import Dataset, DatasetDict, load_dataset
+from datasets.utils.logging import disable_progress_bar
 from paragraph_chunker import ParagraphChunker
 from sentence_regex import SentRegex
+from tqdm import tqdm
 from word_cleaner import WordCleaner
 
+# disable_progress_bar()
 
-def filter_genre(example):
-    return [
-        e for e in example["H3_corpus_sv"] if e != "populärvetenskap" or e != "domar"
-    ]
+
+def process_group(dataset_list):
+    num_processor = 8  # os.cpu_count()
+    batched_bool = False
+
+    dataset_temp_list = []
+    for dataset in dataset_list:
+
+        pre_clean = WordCleaner()
+        clean_sent_list = pre_clean.clean_pipe(
+            dataset_list=dataset, batched=batched_bool, num_proc=num_processor
+        )
+
+        # pre_regex = SentRegex(batched=batched_bool, num_proc=num_processor)
+        # regex_sent_list = pre_regex.regex_pipe(dataset_list=clean_sent_list)
+
+        # p_chunker = ParagraphChunker(batched=batched_bool, num_proc=num_processor)
+        # chunked_dataset = p_chunker.chunk_pipe(dataset_list=regex_sent_list)
+        dataset_temp_list.append(clean_sent_list)
+
+    return {"text": dataset_temp_list}
+
+
+def dataset_dict_groups(dataset_list):
+    df = dataset_list.to_pandas()
+    dataset_groups = {}
+    for name, group in df.groupby("ID"):
+        dataset_g = Dataset.from_pandas(group[["text"]])
+        dataset_g_text = dataset_g.remove_columns("__index_level_0__")
+        dataset_groups[name] = dataset_g_text
+
+    dataset_dict = DatasetDict(dataset_groups)
+
+    return dataset_dict
 
 
 if __name__ == "__main__":
 
-    # project_dir = os.path.join(os.path.dirname(__file__), os.pardir)
-    # dotenv_path = os.path.join(project_dir, "../.env")
-
-    # load_dotenv(dotenv_path)
-
-    # login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
-
     dataset_list = load_dataset(
-        "Riksarkivet/raw_parts_of_kbuhist2_v2",
+        "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
         split="train",
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
 
-    print(dataset_list)
+    # dataset_dict = dataset_dict_groups(dataset_list=dataset_list)
+    # print(dataset_dict)
 
-    dataset_filterted = dataset_list.filter(filter_genre, batched=True, num_proc=20)
+    chunked_datasets = dataset_list.map(process_group, batched=True, num_proc=8)
 
-    print(dataset_filterted)
-    quit()
+    print(chunked_datasets)
 
-    num_proc = 48  # os.cpu_count()
+    # final_dataset = chunked_dataset.train_test_split(test_size=0.02, seed=42)
 
-    pre_clean = WordCleaner()
-    clean_sent_list = pre_clean.clean_pipe(dataset_list=dataset_list, num_proc=num_proc)
-
-    pre_regex = SentRegex()
-    regex_sent_list = pre_regex.regex_pipe(
-        dataset_list=clean_sent_list, num_proc=num_proc
-    )
-
-    p_chunker = ParagraphChunker()
-    chunked_dataset = p_chunker.chunk_pipe(
-        dataset_list=regex_sent_list, num_proc=num_proc
-    )
-
-    print(chunked_dataset)
-
-    final_dataset = chunked_dataset.train_test_split(test_size=0.02, seed=42)
-
-    print(final_dataset)
-
-    final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v4")
+    # final_dataset.push_to_hub("Gabriel/mini_kbuhist2_v4")
