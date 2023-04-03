@@ -106,7 +106,7 @@ class WordCleaner:
 
         return new_sent_list
 
-    def counting_sequence_length_of_numbers(self, sent_list) -> list:
+    def counting_sequence_length_of_numbers(self, sent_list: list) -> list:
         """This function takes a list of sentences and counts the number of words that contain digits in each sentence.
         If the ratio of the number of words containing digits to the number of words not containing digits in a sentence
         is less than the threshold value, the sentence is added to a new list.
@@ -174,8 +174,3 @@ if __name__ == "__main__":
     test = cl_sent_list.to_pandas()
 
     print(test)
-
-
-# TODO
-# Now the function can handle the dataset but not lists
-# Rewrite test

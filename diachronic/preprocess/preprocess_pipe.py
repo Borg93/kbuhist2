@@ -1,4 +1,4 @@
-from datasets import Dataset, DatasetDict, load_dataset
+from datasets import Dataset, load_dataset
 from datasets.utils.logging import disable_progress_bar
 from paragraph_chunker import ParagraphChunker
 from sentence_regex import SentRegex
@@ -8,7 +8,7 @@ from word_cleaner import WordCleaner
 # disable_progress_bar()
 
 
-def flatten_list_of_dict(chunked_batch):
+def flatten_list_of_dict(chunked_batch: Dataset) -> Dataset:
     temp_list_text = []
     for batch in tqdm(chunked_batch["chunked_text"], desc="flattening"):
         for b in batch:

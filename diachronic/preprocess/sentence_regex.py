@@ -29,6 +29,9 @@ class SentRegex:
                 (r"^\s+", ""),
                 (r"^[,.]", ""),
                 (r"^\s+", ""),
+                (r"^[,.;:?!]", ""),
+                (r"^[,.;:?!]", ""),
+                (r"^\s+", ""),
             )
         ),
         remove_starting_roman_chapters: bool = True,
@@ -66,7 +69,7 @@ class SentRegex:
         )
         return cleaned_dataset_list
 
-    def _batch_parallelize_function(self, dataset_list, **kwargs):
+    def _batch_parallelize_function(self, dataset_list: Dataset, **kwargs) -> Dataset:
         input_cols = kwargs["input_column"]
 
         list_dataset_list = [
@@ -77,8 +80,8 @@ class SentRegex:
         return {"regex_text": list_dataset_list}
 
     def clean_list_from_roman_and_specialchar_and_whitespace(
-        self, sent_list: List
-    ) -> dict:
+        self, sent_list: list
+    ) -> list:
         temp_sent_list = []
         for sent in sent_list:
             new_sent_list_without_white = self.specialchar_and_whitespace_sub(sent)
@@ -177,8 +180,3 @@ if __name__ == "__main__":
     test = cl_sent_list.to_pandas()
 
     print(test)
-
-# TODO
-# Rewrite test
-# Remove this parts with regex :'40004023\tOch han gick omkring i hela Galileen och undervisade i deras synagogor och predikade evangelium om riket och botade alla slags sjukdomar och allt slags skröplighet bland folket.\n'
-# Khubist kbuhist should be renamded to diachronic...
