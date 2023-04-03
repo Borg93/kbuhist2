@@ -18,7 +18,7 @@ class ParagraphChunker:
         self,
         dataset_list: Dataset,
         batched: bool = False,
-        num_proc: Union[int, None] = 8,
+        num_proc: Union[int, None] = 64,
         remove_columns: Union[str, List[str], None] = "seq_text",
         input_column: str = "seq_text",
     ):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
 
-    dataset_list = dataset_list.select(range(1000))
+    # dataset_list = dataset_list.select(range(10000))
 
     logging.info(f"Before chunking: {len(dataset_list)}")
 
@@ -91,10 +91,7 @@ if __name__ == "__main__":
 
     logging.info(f"Before after: {len(chunked_dataset)}")
 
-    print(dataset_list["text"][-1])
-    print("\n")
-    print(chunked_dataset["chunked_text"][-1])
-
+    print(chunked_dataset["chunked_text"][0][0])
 
 # TODO
 

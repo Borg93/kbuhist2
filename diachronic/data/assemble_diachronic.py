@@ -5,7 +5,8 @@ from pathlib import Path
 import pandas as pd
 import zip_utils
 from datasets import Dataset
-from get_kbuhist import GetKbuhist
+
+from diachronic.data.get_diachronic import GetDiachronic
 
 
 def assemble_parquet(push_to_hub=False, repo_push=None, num_proc=20):
@@ -96,11 +97,11 @@ if __name__ == "__main__":
 
     # for corpus in corpuses:
     #     target_corpus = corpus
-    #     kbuhist = GetKbuhist(remove_main_temp_folder=True)
-    #     category_and_name_list = kbuhist.get_files_from_url(corpus=target_corpus)
+    #     diachronic = GetDiachronic(remove_main_temp_folder=True)
+    #     category_and_name_list = diachronic.get_files_from_url(corpus=target_corpus)
     #     zip_utils.zip_extract_files(category_and_name_list)
     #     zip_utils.delete_unwanted_files(category_and_name_list)
-    #     kbuhist.read_txt_files(corpus=target_corpus)
+    #     diachronic.read_txt_files(corpus=target_corpus)
 
     assemble_parquet(
         push_to_hub=True, repo_push="Gabriel/raw_parts_grouped_of_kbuhist2_v3"

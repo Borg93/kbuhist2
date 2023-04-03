@@ -1,6 +1,6 @@
 import pytest
 
-from kbuhist.preprocess.sentence_regex import SentRegex
+from diachronic.preprocess.sentence_regex import SentRegex
 
 
 @pytest.mark.parametrize(

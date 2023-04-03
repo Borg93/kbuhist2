@@ -8,10 +8,10 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-from kbuhist.data.metadata_extract import get_all_info_of_table
+from diachronic.data.metadata_extract import get_all_info_of_table
 
 
-class GetKbuhist:
+class GetDiachronic:
     def __init__(
         self,
         main_temp_folder="svediakorp",
@@ -116,7 +116,13 @@ class GetKbuhist:
         logging.info(f"Removing main temp folder: {self.main_temp_folder}")
 
     def _return_readlines(self, meta_info, dataset, dict_to_read):
-        meta_H1_sv, meta_H3_corpus, meta_H3_corpus_sv, meta_year, meta_file_name = meta_info
+        (
+            meta_H1_sv,
+            meta_H3_corpus,
+            meta_H3_corpus_sv,
+            meta_year,
+            meta_file_name,
+        ) = meta_info
         temp_df_list = []
         for files_in_dict in dict_to_read:
 
@@ -157,8 +163,8 @@ if __name__ == "__main__":
     )
 
     target_corpus = "informal"
-    urlkbuhist = GetKbuhist()
-    category_and_name_list = urlkbuhist.get_files_from_url(corpus=target_corpus)
-    # urlkbuhist.zip_extract_files(category_and_name_list)
-    # urlkbuhist.delete_unwanted_files(category_and_name_list)
-    urlkbuhist.read_txt_files(corpus=target_corpus)
+    urldiachronic = GetDiachronic()
+    category_and_name_list = urldiachronic.get_files_from_url(corpus=target_corpus)
+    # urldiachronic.zip_extract_files(category_and_name_list)
+    # urldiachronic.delete_unwanted_files(category_and_name_list)
+    urldiachronic.read_txt_files(corpus=target_corpus)

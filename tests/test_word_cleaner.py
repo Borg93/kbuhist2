@@ -1,6 +1,6 @@
 import pytest
 
-from kbuhist.preprocess.word_cleaner import WordCleaner
+from diachronic.preprocess.word_cleaner import WordCleaner
 
 
 def test_counting_sequence_length_of_numbers():
