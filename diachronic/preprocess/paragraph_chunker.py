@@ -21,7 +21,7 @@ class ParagraphChunker:
         num_proc: Union[int, None] = 64,
         remove_columns: Union[str, List[str], None] = "seq_text",
         input_column: str = "seq_text",
-    ):
+    ) -> Dataset:
 
         if batched is True:
             num_proc = num_proc
@@ -38,32 +38,52 @@ class ParagraphChunker:
 
         return chunked_datasets
 
-    def group_texts(self, dataset_list: Dataset, **kwargs) -> Dataset:
+    def group_texts(self, dataset_list: Dataset, **kwargs) -> Union[Dataset, dict]:
 
         input_cols = kwargs["input_column"]
 
         chunked_sent_list = [
-            self._chunker_split(data) for data in dataset_list[input_cols]
+            self.chunker_split(data) for data in dataset_list[input_cols]
         ]
 
         return {"chunked_text": chunked_sent_list}
 
-    def _chunker_split(self, dataset_list_text: list) -> list:
+    def chunker_split(self, dataset_list_text: list) -> list:
+
+        """
+        Given a list of strings, splits each string into smaller chunks of maximum size `chunk_size` and returns a list of
+        these chunks. The function uses a sliding window approach where it starts with an empty string and adds sentences
+        from the input list until the maximum chunk size is reached. It then adds the last sentence to the next chunk and
+        repeats the process until all sentences have been processed.
+
+        Args:
+            dataset_list_text (list): A list of strings representing the original dataset.
+
+        Returns:
+            list: A list of smaller chunks of maximum size `chunk_size`.
+        """
+        if not isinstance(dataset_list_text, list):
+            raise ValueError("dataset_list_text must be a list")
+        if not all(isinstance(sentence, str) for sentence in dataset_list_text):
+            raise ValueError("All elements in dataset_list_text must be strings")
+
         temp_new_chunk_list = []
         temp_sent = ""
         temp_sent_list = []
         for sent in dataset_list_text:
             temp_sent += " " + sent
             temp_sent_list.append(temp_sent.strip())
-            if len(self.tokenizer.tokenize(temp_sent_list[-1])) > self.chunk_size:
-                if len(temp_sent_list) > 1:
+            token_len = len(self.tokenizer.tokenize(temp_sent_list[-1]))
+            if token_len > self.chunk_size:
+                if len(temp_sent_list) < 2:
+                    temp_new_chunk_list.append(temp_sent_list[-1])
+                    temp_sent = ""
+                    temp_sent_list = []
+                else:
                     temp_new_chunk_list.append(temp_sent_list[-2])
                     temp_sent = "" + sent
                     temp_sent_list = [temp_sent]
-                else:
-                    temp_new_chunk_list.append(temp_sent_list[-1])
-                    temp_sent = ""
-                    temp_sent_list = [temp_sent]
+        temp_new_chunk_list.append(temp_sent_list[-1])
         return temp_new_chunk_list
 
 

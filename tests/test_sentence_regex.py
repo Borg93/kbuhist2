@@ -82,6 +82,7 @@ def test_clean_list_from_roman_and_specialchar_and_whitespace(
     input_list, expected_output_list
 ):
     given_sub_tuple = (
+        (r"^[0-9]{8}\t", ""),
         (
             r"^[\.]{2,5}|[;]\.{2,5}|(\.\s){2,5}|[\.]{4,5}|[;(?!)]\.{2,5}|[;(?!)] \.{2,5}",
             " ",
@@ -97,6 +98,11 @@ def test_clean_list_from_roman_and_specialchar_and_whitespace(
         (r"\s+", " "),
         (r"\t", " "),
         (r"[ \t]+$", ""),
+        (r"^\s+", ""),
+        (r"^[,.]", ""),
+        (r"^\s+", ""),
+        (r"^[,.;:?!]", ""),
+        (r"^[,.;:?!]", ""),
         (r"^\s+", ""),
     )
     sent_regex = SentRegex(

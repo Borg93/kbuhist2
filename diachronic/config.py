@@ -13,10 +13,17 @@ def parse_args():
         default="KBLab/bert-base-swedish-cased-new",
         help="Model id as checkpoint for training.",
     )
+
+    parser.add_argument(
+        "--column",
+        type=str,
+        default="flatten_chunked_text",
+        help="str: Column to train on",
+    )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="Riksarkivet/mini_cleaned_diachronic_swe",
+        default="Riksarkivet/test_mini_kbuhist2_v5",
         help="Dataset to train on.",
     )
     # add model id and dataset path argument
@@ -34,7 +41,7 @@ def parse_args():
     )
     # add training hyperparameters for epochs, batch size, learning rate, and seed
     parser.add_argument(
-        "--epochs", type=int, default=3, help="Number of epochs to train for."
+        "--epochs", type=int, default=6, help="Number of epochs to train for."
     )
     parser.add_argument(
         "--per_device_train_batch_size",
@@ -49,7 +56,7 @@ def parse_args():
         help="Batch size to use for testing.",
     )
     parser.add_argument(
-        "--lr", type=float, default=3e-3, help="Learning rate to use for training."
+        "--lr", type=float, default=2e-5, help="Learning rate to use for training."
     )
     parser.add_argument(
         "--wdecay", type=float, default=0.01, help="Weight decay to use for training."

@@ -30,7 +30,7 @@ def training_function(args, debug):
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
     model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)
 
-    lm_datasets = load_dataset(dataset_checkpoint, cache_dir=".cache")
+    lm_datasets = load_dataset(dataset_checkpoint, cache_dir="../.cache")
 
     if debug:
         train_size = 1000
@@ -44,7 +44,7 @@ def training_function(args, debug):
 
     def tokenize_function(examples):
         result = tokenizer(
-            examples["text"], max_length=512, truncation=True, padding="max_length"
+            examples[args.column], max_length=512, truncation=True, padding="max_length"
         )
         if tokenizer.is_fast:
             result["word_ids"] = [
@@ -53,7 +53,9 @@ def training_function(args, debug):
         return result
 
     tokenized_datasets = dataset.map(
-        tokenize_function, batched=True, remove_columns=["text", "__index_level_0__"]
+        tokenize_function,
+        batched=True,
+        remove_columns=[args.column],
     )
 
     data_collator = DataCollatorForLanguageModeling(
@@ -169,7 +171,7 @@ def training_function(args, debug):
 
 if __name__ == "__main__":
     args, _ = parse_args()
-    training_function(args, debug=True)
+    training_function(args, debug=False)
 
     # TODO
     # add args and test for accelerate, look at llm_kbuhist..

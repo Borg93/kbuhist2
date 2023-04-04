@@ -1,13 +1,84 @@
+
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "diachronic"
+description = "The purpose of the project is to provide a historical text model that covers different time periods from Old Swedish"
+readme = "README.md"
+requires-python = ">= 3.9"
+version="0.0.0.dev1"
+authors = [{ name = "The Swedish National Archives Face team "}]
+license = { text = "MIT" }
+
+dependencies = [
+    "datasets==2.10.0",
+    "transformers==4.26.1",
+    "numpy==1.24.2",
+    "joblib==1.2.0",
+    #chardet==5.1.0,
+    "cchardet == 2.1.7",
+    "scikit-learn== 1.2.1",
+    "pandas==1.5.3",
+    "tqdm==4.64.1",
+    "tensorboard==2.12.0",
+    "accelerate == 0.16.0",
+    "torch-tb-profiler== 0.4.1",
+    "evaluate==0.4.0",
+    "huggingface_hub == 0.13.2",
+    "dill <0.3.5",
+]
+
+keywords = [
+    "NLP",
+    "deep learning",
+    "transformer",
+    "pytorch",
+    "BERT",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.optional-dependencies]
+dev = [
+    "tox",
+    "pre-commit",
+    "pytest == 7.2.1",
+    "pytest-cov == 4.0.0",
+    "mypy == 1.0.1",
+    "black",
+    "ruff",
+    "python-dotenv==0.5.1",
+]
+
+# [tool.setuptools]
+# include-package-data = true
+
+# [tool.setuptools.packages.find]
+# where = ["src"]
+
+# test ##########################################################
 
 [tool.pytest.ini_options]
 addopts = "-v"
 testpaths = ["tests"]
+
+# linter ##########################################################
+
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
@@ -54,3 +125,7 @@ target-version = "py39"
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
+
+[tool.ruff.isort]
+lines-after-imports = 2
+known-first-party = ["diachronic"]

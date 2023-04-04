@@ -3,8 +3,12 @@ import pytest
 from diachronic.preprocess.word_cleaner import WordCleaner
 
 
-def test_counting_sequence_length_of_numbers():
-    cleaner = WordCleaner()
+@pytest.fixture
+def cleaner():
+    return WordCleaner(counting_avg=0.65, number_ratio=0.5, short_word_threshold=10)
+
+
+def test_counting_sequence_length_of_numbers(cleaner):
 
     test_numb_length = [
         "267864,117 580 254 760 14 4 — 92 — 8 32 122 32 ' 74 24 500 126 •_ 400 — 252 800 lä ä — 95 — 10 — 126 32 85",
@@ -24,8 +28,7 @@ def test_counting_sequence_length_of_numbers():
     )
 
 
-def test_counting_length_of_letters_and_if_to_many_remove():
-    cleaner = Word_Cleaner()
+def test_counting_length_of_letters_and_if_to_many_remove(cleaner):
 
     test_sent_length = [
         "Psykologiska g å t o r hej hej ",
@@ -39,6 +42,7 @@ def test_counting_length_of_letters_and_if_to_many_remove():
     ]
 
     expected_output = [
+        "Psykologiska g å t o r hej hej ",
         "I en vacker salon på ett litet l a n d t s t ä l l e nära floden, ett par mil ifrån London",
         "— Nej, troligen icke, — svarade Astley förvånad och kännande sina misstankar.",
         "— Gott Godt!",
