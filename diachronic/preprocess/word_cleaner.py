@@ -69,7 +69,7 @@ class WordCleaner:
         dataset_list["clean_text"] = temp_data_list
         return dataset_list
 
-    def _window_split(self, list_a, chunk_size):
+    def _window_split(self, list_a: list, chunk_size: int) -> list:
         for i in range(0, len(list_a), chunk_size):
             yield list_a[i : i + chunk_size]
 
