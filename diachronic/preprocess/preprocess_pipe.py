@@ -23,7 +23,7 @@ if __name__ == "__main__":
     num_processor = 64
 
     dataset_list = load_dataset(
-        "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
+        "Riksarkivet/raw_parts_grouped_of_kbuhist2_v3",
         split="train",
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
@@ -62,4 +62,4 @@ if __name__ == "__main__":
     print(flatten_chunked_dataset)
 
     final_dataset = flatten_chunked_dataset.train_test_split(test_size=0.02, seed=42)
-    final_dataset.push_to_hub("Gabriel/test_mini_kbuhist2_v5")
+    final_dataset.push_to_hub("Gabriel/test_mini_kbuhist2_v6")

@@ -5,7 +5,9 @@ from diachronic.preprocess.word_cleaner import WordCleaner
 
 @pytest.fixture
 def cleaner():
-    return WordCleaner(counting_avg=0.65, number_ratio=0.5, short_word_threshold=10)
+    return WordCleaner(
+        word_counting_avg=0.25, number_ratio=0.5, short_word_threshold=10
+    )
 
 
 def test_counting_sequence_length_of_numbers(cleaner):
@@ -39,15 +41,17 @@ def test_counting_length_of_letters_and_if_to_many_remove(cleaner):
         "heJ »» HEJ» The     quick brown    fox, Augusta på 	Isa, o c h Isa p å A u g u s t",
         "I en vac k e r s a l o n på e t t l i t e t l a n d t s t älle nära floden, ett par mil ifrån London.",
         "— God t !",
+        "Go d t",
+        "G o d t !",
+        "Hej jag m å r bra, hur mår d u?",
+        "Hej jag m å r b ra, hur mår du i d a g?",
     ]
 
     expected_output = [
-        "Psykologiska g å t o r hej hej ",
-        "I en vacker salon på ett litet l a n d t s t ä l l e nära floden, ett par mil ifrån London",
         "— Nej, troligen icke, — svarade Astley förvånad och kännande sina misstankar.",
         "— Gott Godt!",
-        "heJ »» HEJ» The     quick brown    fox, Augusta på \tIsa, o c h Isa p å A u g u s t",
         "— God t !",
+        "Go d t",
     ]
 
     assert (

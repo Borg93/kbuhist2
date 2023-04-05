@@ -2,18 +2,19 @@ import logging
 import re
 from typing import List, Union
 
+import numpy as np
 from datasets import Dataset, load_dataset
 
 
 class WordCleaner:
     def __init__(
         self,
-        counting_avg: float = 0.65,
+        word_counting_avg: float = 0.25,
         number_ratio: float = 0.5,
         short_word_threshold: int = 10,
     ):
         self.number_ratio = number_ratio
-        self.counting_avg = counting_avg
+        self.word_counting_avg = word_counting_avg
         self.short_word_threshold = short_word_threshold
 
     def clean_pipe(
@@ -68,42 +69,32 @@ class WordCleaner:
         dataset_list["clean_text"] = temp_data_list
         return dataset_list
 
+    def _window_split(self, list_a, chunk_size):
+        for i in range(0, len(list_a), chunk_size):
+            yield list_a[i : i + chunk_size]
+
     def counting_length_of_letters_and_if_to_many_remove(self, sent_list: list) -> list:
-        """This function takes a list of sentences and counts the number of long and short words in each sentence.
-        If the average length of words in a sentence is greater than the threshold value or the length of the sentence
-        (each word) is less than 10, the sentence is added to a new list.
-
-        Args:
-            sent_list (list): A list of sentences to be processed.
-
-        Returns:
-            list: A new list containing the sentences with a number ratio less than the threshold or less than the
-            short_word_threshold (default 7) words
-        """
-
         new_sent_list = []
         for sent in sent_list:
-            splitted_sent = sent.split()
-            counter_word_length = {"long": 0, "short": 0}
-            for word in splitted_sent:
-                if len(word) > 1:
-                    counter_word_length["long"] += 1
-                else:
-                    counter_word_length["short"] += 1
-            counter_ratio = (counter_word_length["long"] + 0.5) / (
-                counter_word_length["short"] + 0.001
+            list_of_splitted_sent = sent.split()
+            windowed_list_of_splitted_sent = self._window_split(
+                list_of_splitted_sent, chunk_size=self.short_word_threshold
             )
-            counter_ratio_len = 1 - (
-                counter_word_length["short"] / (len(splitted_sent) + 0.1)
-            )
-            counter_avg = (counter_ratio + counter_ratio_len) / 2
-
-            if counter_avg > self.counting_avg:
+            temp_window_word_list_ratio = []
+            for window_word_list in windowed_list_of_splitted_sent:
+                short_count = len(
+                    [
+                        window_word
+                        for window_word in window_word_list
+                        if len(window_word) == 1
+                        and re.match(r"^[A-Za-z0-9_-]*$", window_word)
+                    ]
+                )
+                temp_window_word_list_ratio.append(
+                    short_count / self.short_word_threshold
+                )
+            if np.mean(temp_window_word_list_ratio) < self.word_counting_avg:
                 new_sent_list.append(sent)
-
-            elif len(splitted_sent) < self.short_word_threshold:
-                new_sent_list.append(sent)
-
         return new_sent_list
 
     def counting_sequence_length_of_numbers(self, sent_list: list) -> list:
@@ -151,26 +142,46 @@ class WordCleaner:
 
 if __name__ == "__main__":
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+    # logging.basicConfig(
+    #     level=logging.INFO,
+    #     format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
+    #     datefmt="%Y-%m-%d %H:%M:%S",
+    # )
+
+    # dataset_list = load_dataset(
+    #     "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
+    #     split="train",
+    #     cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
+    # )
+    # # dataset_list = dataset_list.select(range(1000))
+
+    # logging.info(f"Before filtering by length counter: {len(dataset_list)}")
+
+    pre_cleaner = WordCleaner(word_counting_avg=0.3)
+    # cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list, batched=True)
+
+    # logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
+
+    # test = cl_sent_list.to_pandas()
+
+    # print(test)
+
+    test_sent_length = [
+        "Psykologiska g å t o r hej hej ",
+        "En q w e r t q e t u q t h d s  rättegång för sextio år sedan.\n",
+        "I en vacker salon på ett litet l a n d t s t ä l l e nära floden, ett par mil ifrån London",
+        "— Nej, troligen icke, — svarade Astley förvånad och kännande sina misstankar.",
+        "— Gott Godt!",
+        "heJ »» HEJ» The     quick brown    fox, Augusta på 	Isa, o c h Isa p å A u g u s t",
+        "I en vac k e r s a l o n på e t t l i t e t l a n d t s t älle nära floden, ett par mil ifrån London.",
+        "— God t !",
+        "Go d t",
+        "G o d t !",
+        "Hej jag m å r bra, hur mår d u?",
+        "Hej jag m å r b ra, hur mår du i d a g?",
+    ]
+
+    testtt = pre_cleaner.counting_length_of_letters_and_if_to_many_remove(
+        test_sent_length
     )
-
-    dataset_list = load_dataset(
-        "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
-        split="train",
-        cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
-    )
-    # dataset_list = dataset_list.select(range(1000))
-
-    logging.info(f"Before filtering by length counter: {len(dataset_list)}")
-
-    pre_cleaner = WordCleaner()
-    cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list, batched=True)
-
-    logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
-
-    test = cl_sent_list.to_pandas()
-
-    print(test)
+    print(testtt)
