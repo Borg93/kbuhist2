@@ -182,3 +182,5 @@ if __name__ == "__main__":
     # add post-correction byt5.. perhaps in a different folder?
     # TODO
     # Train model with lower learning rate --> 4e5 with 4 gpus (1e5)
+    # TODO
+    # Update tokenizer!
