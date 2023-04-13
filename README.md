@@ -15,8 +15,3 @@
 - perplexity: 3.6
 
 ---
-
-## TODO
-
-- preprocess diachronic again and evaluate --> publish to huggingface
-- train model on new published dataset.

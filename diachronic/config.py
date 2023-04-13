@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument(
         "--dataset",
         type=str,
-        default="Riksarkivet/test_mini_kbuhist2_v5",
+        default="Riksarkivet/cleaned_Diachronic_swe",
         help="Dataset to train on.",
     )
     # add model id and dataset path argument
@@ -56,7 +56,7 @@ def parse_args():
         help="Batch size to use for testing.",
     )
     parser.add_argument(
-        "--lr", type=float, default=8e-5, help="Learning rate to use for training."
+        "--lr", type=float, default=4e-5, help="Learning rate to use for training."
     )
     parser.add_argument(
         "--wdecay", type=float, default=0.01, help="Weight decay to use for training."

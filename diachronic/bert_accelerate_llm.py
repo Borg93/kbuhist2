@@ -2,6 +2,7 @@ import math
 
 import torch
 from accelerate import Accelerator
+from accelerate.utils import set_seed
 from config import parse_args
 from datasets import load_dataset
 from torch.optim import AdamW
@@ -20,6 +21,7 @@ from transformers import (
 
 
 def training_function(args, debug):
+    set_seed(42)
 
     # Tensorboard
     writer = SummaryWriter()
@@ -99,9 +101,10 @@ def training_function(args, debug):
         eval_dataset, batch_size=eval_batch_size, collate_fn=default_data_collator
     )
 
-    optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
-
     accelerator = Accelerator()
+
+    optimizer = AdamW(params=model.parameters(), lr=args.lr, weight_decay=args.wdecay)
+
     model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
         model, optimizer, train_dataloader, eval_dataloader
     )
@@ -117,7 +120,7 @@ def training_function(args, debug):
         num_training_steps=num_training_steps,
     )
 
-    model_name = "bert-base-cased-swedish-1800-accelerate_v2"
+    model_name = "bert-base-cased-swedish-1800-accelerate_v3"
     output_dir = model_name
     progress_bar = tqdm(range(num_training_steps))
 
@@ -174,27 +177,8 @@ if __name__ == "__main__":
     training_function(args, debug=False)
 
     # TODO
-    # add args and test for accelerate, look at llm_kbuhist..
-    # TODO
     # add byt5 (t5) llm trnaing script
     # TODO
     # add post-correction byt5.. perhaps in a different folder?
     # TODO
-    # add test and refactor prepreocessing (perhaps redo chunker?)
-
-# TODO
-# here parallelize code..
-
-# !pip install psutil
-# import psutil
-
-# Process.memory_info is expressed in bytes, so convert to megabytes
-# print(f"RAM used: {psutil.Process().memory_info().rss / (1024 * 1024):.2f} MB")
-# https://huggingface.co/course/chapter5/4?fw=pt#what-is-the-pile
-
-# batch mapping
-# https://huggingface.co/docs/datasets/about_map_batch
-
-# mlm_data_collator? --> determinsitc masking for evaluation...
-
-# https://huggingface.co/course/chapter7/3?fw=pt
+    # Train model with lower learning rate --> 4e5 with 4 gpus (1e5)

@@ -141,47 +141,26 @@ class WordCleaner:
 
 
 if __name__ == "__main__":
-
-    # logging.basicConfig(
-    #     level=logging.INFO,
-    #     format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
-    #     datefmt="%Y-%m-%d %H:%M:%S",
-    # )
-
-    # dataset_list = load_dataset(
-    #     "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
-    #     split="train",
-    #     cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
-    # )
-    # # dataset_list = dataset_list.select(range(1000))
-
-    # logging.info(f"Before filtering by length counter: {len(dataset_list)}")
-
-    pre_cleaner = WordCleaner(word_counting_avg=0.3)
-    # cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list, batched=True)
-
-    # logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
-
-    # test = cl_sent_list.to_pandas()
-
-    # print(test)
-
-    test_sent_length = [
-        "Psykologiska g å t o r hej hej ",
-        "En q w e r t q e t u q t h d s  rättegång för sextio år sedan.\n",
-        "I en vacker salon på ett litet l a n d t s t ä l l e nära floden, ett par mil ifrån London",
-        "— Nej, troligen icke, — svarade Astley förvånad och kännande sina misstankar.",
-        "— Gott Godt!",
-        "heJ »» HEJ» The     quick brown    fox, Augusta på 	Isa, o c h Isa p å A u g u s t",
-        "I en vac k e r s a l o n på e t t l i t e t l a n d t s t älle nära floden, ett par mil ifrån London.",
-        "— God t !",
-        "Go d t",
-        "G o d t !",
-        "Hej jag m å r bra, hur mår d u?",
-        "Hej jag m å r b ra, hur mår du i d a g?",
-    ]
-
-    testtt = pre_cleaner.counting_length_of_letters_and_if_to_many_remove(
-        test_sent_length
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
-    print(testtt)
+
+    dataset_list = load_dataset(
+        "Gabriel/raw_parts_grouped_of_kbuhist2_v3",
+        split="train",
+        cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
+    )
+    # dataset_list = dataset_list.select(range(1000))
+
+    logging.info(f"Before filtering by length counter: {len(dataset_list)}")
+
+    pre_cleaner = WordCleaner()
+    cl_sent_list = pre_cleaner.clean_pipe(dataset_list=dataset_list, batched=True)
+
+    logging.info(f"After filtering by number counter: {len(cl_sent_list)}")
+
+    test = cl_sent_list.to_pandas()
+
+    print(test)

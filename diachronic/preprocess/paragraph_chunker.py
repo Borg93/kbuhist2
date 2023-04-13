@@ -22,7 +22,6 @@ class ParagraphChunker:
         remove_columns: Union[str, List[str], None] = "seq_text",
         input_column: str = "seq_text",
     ) -> Dataset:
-
         if batched is True:
             num_proc = num_proc
         else:
@@ -39,7 +38,6 @@ class ParagraphChunker:
         return chunked_datasets
 
     def group_texts(self, dataset_list: Dataset, **kwargs) -> Union[Dataset, dict]:
-
         input_cols = kwargs["input_column"]
 
         chunked_sent_list = [
@@ -49,7 +47,6 @@ class ParagraphChunker:
         return {"chunked_text": chunked_sent_list}
 
     def chunker_split(self, dataset_list_text: list) -> list:
-
         """
         Given a list of strings, splits each string into smaller chunks of maximum size `chunk_size` and returns a list of
         these chunks. The function uses a sliding window approach where it starts with an empty string and adds sentences
@@ -83,12 +80,12 @@ class ParagraphChunker:
                     temp_new_chunk_list.append(temp_sent_list[-2])
                     temp_sent = "" + sent
                     temp_sent_list = [temp_sent]
-        temp_new_chunk_list.append(temp_sent_list[-1])
+        if len(temp_sent_list) > 0:
+            temp_new_chunk_list.append(temp_sent_list[-1])
         return temp_new_chunk_list
 
 
 if __name__ == "__main__":
-
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(filename)s %(levelname)s: %(message)s",
@@ -101,13 +98,15 @@ if __name__ == "__main__":
         cache_dir="/ceph/hpc/home/euerikl/projects/kbuhist2/.cache",
     )
 
-    # dataset_list = dataset_list.select(range(10000))
+    dataset_list = dataset_list.select(range(100))
 
     logging.info(f"Before chunking: {len(dataset_list)}")
 
     p_chunker = ParagraphChunker()
 
-    chunked_dataset = p_chunker.chunk_pipe(dataset_list=dataset_list, batched=True)
+    chunked_dataset = p_chunker.chunk_pipe(
+        dataset_list=dataset_list, batched=True, num_proc=8
+    )
 
     logging.info(f"Before after: {len(chunked_dataset)}")
 

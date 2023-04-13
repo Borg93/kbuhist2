@@ -1,5 +1,6 @@
 from datasets import Dataset, load_dataset
-from datasets.utils.logging import disable_progress_bar
+
+# from datasets.utils.logging import disable_progress_bar
 from paragraph_chunker import ParagraphChunker
 from sentence_regex import SentRegex
 from tqdm import tqdm
@@ -18,7 +19,6 @@ def flatten_list_of_dict(chunked_batch: Dataset) -> Dataset:
 
 
 if __name__ == "__main__":
-
     batched_bool = True
     num_processor = 64
 
