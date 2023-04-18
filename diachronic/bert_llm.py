@@ -12,7 +12,7 @@ from transformers import (
 )
 
 
-def training_function(args, debug):
+def training_function(args, debug, evaluation):
     # set seed
     set_seed(args.seed)
 
@@ -100,17 +100,20 @@ def training_function(args, debug):
         tokenizer=tokenizer,
         # compute_metrics=compute_metrics,
     )
+    
+    trainer.evaluate()
+    
+    if evaluation:
+        trainer.train()
 
-    trainer.train()
+        tokenizer.save_pretrained(output_dir)
+        trainer.create_model_card()
 
-    tokenizer.save_pretrained(output_dir)
-    trainer.create_model_card()
-
-    if args.repository_id:
-        trainer.push_to_hub()
+        if args.repository_id:
+            trainer.push_to_hub()
 
 
 if __name__ == "__main__":
 
     args, _ = parse_args()
-    training_function(args, debug=True)
+    training_function(args, debug=True, evaluation=False)
